@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Itemora</title>
+  <title>Itemora - Realtime Affiliate Shop</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
     :root {
@@ -13,14 +13,12 @@
       --bg-dark: #2d2b4f;
       --light: #ffffff;
     }
-
     body {
       font-family: 'Poppins', 'Segoe UI', sans-serif;
       margin: 0;
       background-color: var(--secondary);
       color: var(--primary);
     }
-
     header {
       background-color: var(--primary);
       color: var(--light);
@@ -29,47 +27,39 @@
       justify-content: space-between;
       align-items: center;
     }
-
     header h1 {
       margin: 0;
       font-size: 1.8rem;
       font-weight: 600;
     }
-
     nav a {
       color: var(--light);
       margin-left: 1rem;
       text-decoration: none;
       font-weight: 500;
     }
-
     nav a:hover {
       color: var(--accent);
     }
-
     .slideshow-container {
       max-width: 100%;
       position: relative;
       margin: auto;
     }
-
     .slide {
       display: none;
     }
-
     .slide img {
       width: 100%;
       height: 400px;
       object-fit: cover;
     }
-
     .products {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       gap: 1.5rem;
       padding: 2rem;
     }
-
     .product-card {
       background-color: var(--light);
       border-radius: 10px;
@@ -79,39 +69,32 @@
       flex-direction: column;
       transition: transform 0.3s ease;
     }
-
     .product-card:hover {
       transform: scale(1.02);
     }
-
     .product-card img,
     .product-card video {
       width: 100%;
       height: 200px;
       object-fit: cover;
     }
-
     .product-info {
       padding: 1rem;
     }
-
     .product-info h3 {
       margin: 0.5rem 0;
       font-weight: 600;
     }
-
     .product-info a {
       color: var(--accent);
       text-decoration: none;
     }
-
     .admin-section {
       display: none;
       background-color: var(--bg-dark);
       color: var(--light);
       padding: 2rem;
     }
-
     .admin-section input,
     .admin-section button {
       margin: 0.5rem 0;
@@ -120,7 +103,6 @@
       max-width: 400px;
       display: block;
     }
-
     footer {
       background-color: var(--primary);
       color: var(--light);
@@ -147,9 +129,7 @@
     <div class="slide"><img src="img3.jpg" alt="Slide 3"></div>
   </div>
 
-  <section class="products">
-    <!-- Products will load here dynamically -->
-  </section>
+  <section class="products"></section>
 
   <section class="admin-section" id="adminPanel">
     <h2>Admin Panel</h2>
@@ -163,7 +143,23 @@
     <p>&copy; 2025 Itemora. All rights reserved.</p>
   </footer>
 
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, onSnapshot, orderBy, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD6EygRVnqsdIEL-TmCDDrN3E4mF0XZPaY",
+      authDomain: "itemora-c5e2e.firebaseapp.com",
+      projectId: "itemora-c5e2e",
+      storageBucket: "itemora-c5e2e.appspot.com",
+      messagingSenderId: "661407501374",
+      appId: "1:661407501374:web:b8681352350fd4b2cd956f",
+      measurementId: "G-DZYT9FDTEP"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
     let slideIndex = 0;
     showSlides();
     renderSavedProducts();
@@ -179,23 +175,21 @@
       setTimeout(showSlides, 3000);
     }
 
-   function toggleAdmin() {
-  const panel = document.getElementById('adminPanel');
-  if (panel.style.display === 'block') {
-    panel.style.display = 'none';
-    return;
-  }
+    window.toggleAdmin = function () {
+      const panel = document.getElementById('adminPanel');
+      if (panel.style.display === 'block') {
+        panel.style.display = 'none';
+        return;
+      }
+      const input = prompt("Enter admin password:");
+      if (input === 'admin123') {
+        panel.style.display = 'block';
+      } else {
+        alert("Incorrect password.");
+      }
+    }
 
-  const input = prompt("Enter admin password:");
-  if (input === 'admin123') {
-    panel.style.display = 'block';
-  } else {
-    alert("Incorrect password.");
-  }
-}
-
-
-    function addProduct() {
+    window.addProduct = function () {
       const title = document.getElementById("productTitle").value;
       const link = document.getElementById("affiliateLink").value;
       const media = document.getElementById("mediaUpload").files[0];
@@ -210,30 +204,30 @@
         const mediaData = e.target.result;
         const isVideo = media.type.startsWith("video");
 
-        const newProduct = {
+        addDoc(collection(db, "products"), {
           title,
           link,
           media: mediaData,
-          type: isVideo ? 'video' : 'image'
-        };
-
-        const products = JSON.parse(localStorage.getItem("products") || "[]");
-        products.push(newProduct);
-        localStorage.setItem("products", JSON.stringify(products));
-
-        renderProduct(newProduct);
-        alert("Product added!");
-
-        document.getElementById("productTitle").value = "";
-        document.getElementById("affiliateLink").value = "";
-        document.getElementById("mediaUpload").value = "";
+          type: isVideo ? 'video' : 'image',
+          createdAt: serverTimestamp()
+        }).then(() => {
+          alert("Product uploaded!");
+          document.getElementById("productTitle").value = "";
+          document.getElementById("affiliateLink").value = "";
+          document.getElementById("mediaUpload").value = "";
+        });
       };
       reader.readAsDataURL(media);
     }
 
     function renderSavedProducts() {
-      const products = JSON.parse(localStorage.getItem("products") || "[]");
-      products.forEach(p => renderProduct(p));
+      const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
+      onSnapshot(q, snapshot => {
+        document.querySelector(".products").innerHTML = "";
+        snapshot.forEach(doc => {
+          renderProduct(doc.data());
+        });
+      });
     }
 
     function renderProduct(product) {
@@ -253,10 +247,6 @@
       `;
 
       document.querySelector(".products").appendChild(productCard);
-    }
-
-    function filterProducts(type) {
-      alert(`Filter: ${type} (placeholder only, filtering logic will be added next)`);
     }
   </script>
 </body>
