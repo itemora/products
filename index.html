@@ -2,10 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Itemora</title>
-
-  <!-- Firebase -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js';
     import { getDatabase, ref, onValue, set, push } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js';
@@ -15,7 +13,7 @@
       authDomain: "itemora-a00f6.firebaseapp.com",
       databaseURL: "https://itemora-a00f6-default-rtdb.asia-southeast1.firebasedatabase.app",
       projectId: "itemora-a00f6",
-      storageBucket: "itemora-a00f6.appspot.com",
+      storageBucket: "itemora-a00f6.firebasestorage.app",
       messagingSenderId: "201025180922",
       appId: "1:201025180922:web:6a878f0f67738c3b58e543",
       measurementId: "G-VJ518X84ZC"
@@ -26,6 +24,102 @@
     window.firebaseApp = app;
     window.firebaseDB = db;
     window.firebaseTools = { ref, onValue, set, push };
+  </script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const ADMIN_PASSWORD = 'itemora2025';
+
+      const productGrid = document.getElementById('productGrid');
+      const uploadSection = document.getElementById('upload');
+      const loginSection = document.getElementById('login');
+
+      // Keyboard shortcut: Shift + A to reveal admin login
+      document.addEventListener('keydown', (e) => {
+        if (e.shiftKey && e.key.toLowerCase() === 'a') {
+          loginSection.classList.remove('hidden');
+          loginSection.scrollIntoView({ behavior: 'smooth' });
+        }
+      });
+
+      window.loginAdmin = function () {
+        const input = document.getElementById('adminPassword').value;
+        if (input === ADMIN_PASSWORD) {
+          loginSection.classList.add('hidden');
+          uploadSection.classList.remove('hidden');
+        } else {
+          alert('Incorrect password.');
+        }
+      }
+
+      window.addProduct = function () {
+        const title = document.getElementById('productTitle').value;
+        const description = document.getElementById('productDescription').value;
+        const link = document.getElementById('productLink').value;
+        const mediaType = document.getElementById('mediaType').value;
+        const mediaFile = document.getElementById('productMedia').files[0];
+
+        if (!title || !description || !link || !mediaFile) return alert('Please fill all fields.');
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const newProduct = {
+            title,
+            description,
+            link,
+            mediaType,
+            media: e.target.result
+          };
+
+          const { ref, push, set } = window.firebaseTools;
+          const db = window.firebaseDB;
+          const newProductRef = push(ref(db, 'products'));
+          set(newProductRef, newProduct);
+
+          document.getElementById('productTitle').value = '';
+          document.getElementById('productDescription').value = '';
+          document.getElementById('productLink').value = '';
+          document.getElementById('productMedia').value = '';
+          alert('Product added!');
+        };
+        reader.readAsDataURL(mediaFile);
+      }
+
+      function loadProducts() {
+        const db = window.firebaseDB;
+        const { ref, onValue } = window.firebaseTools;
+        const productsRef = ref(db, 'products');
+        onValue(productsRef, (snapshot) => {
+          const products = snapshot.val() || {};
+          productGrid.innerHTML = '';
+          Object.keys(products).forEach(id => {
+            const p = products[id];
+            const card = document.createElement('div');
+            card.className = 'product-card';
+            let mediaHTML = p.mediaType === 'video' ?
+              `<video controls><source src="${p.media}" type="video/mp4">Your browser does not support video.</video>` :
+              `<img src="${p.media}" alt="${p.title}" />`;
+            card.innerHTML = `
+              ${mediaHTML}
+              <h3>${p.title}</h3>
+              <p>${p.description}</p>
+              <a href="${p.link}" target="_blank" class="btn">View Product</a>
+            `;
+            productGrid.appendChild(card);
+          });
+        });
+      }
+
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          if (window.firebaseDB) {
+            loadProducts();
+          } else {
+            console.error('Firebase not initialized in time.');
+          }
+        }, 1000);
+      });
+    });
   </script>
 
   <style>
@@ -55,7 +149,6 @@
       <nav>
         <ul>
           <li><a href="#featured">Products</a></li>
-          <li><a href="#upload">Admin</a></li>
         </ul>
       </nav>
     </div>
@@ -74,7 +167,7 @@
     <div class="product-grid" id="productGrid"></div>
   </section>
 
-  <section class="login-area container" id="login">
+  <section class="login-area container hidden" id="login">
     <h2>Admin Login</h2>
     <input type="password" id="adminPassword" placeholder="Enter admin password" />
     <button class="btn" onclick="loginAdmin()">Login</button>
@@ -96,93 +189,5 @@
   <footer>
     <p>&copy; 2025 Itemora • All rights reserved</p>
   </footer>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const ADMIN_PASSWORD = 'itemora2025';
-
-      const productGrid = document.getElementById('productGrid');
-      const uploadSection = document.getElementById('upload');
-      const loginSection = document.getElementById('login');
-
-      window.loginAdmin = function () {
-        const input = document.getElementById('adminPassword').value;
-        if (input === ADMIN_PASSWORD) {
-          loginSection.classList.add('hidden');
-          uploadSection.classList.remove('hidden');
-        } else {
-          alert('Incorrect password.');
-        }
-      };
-
-      window.addProduct = function () {
-        const title = document.getElementById('productTitle').value;
-        const description = document.getElementById('productDescription').value;
-        const link = document.getElementById('productLink').value;
-        const mediaType = document.getElementById('mediaType').value;
-        const mediaFile = document.getElementById('productMedia').files[0];
-
-        if (!title || !description || !link || !mediaFile) {
-          return alert('Please fill all fields.');
-        }
-
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          const newProduct = {
-            title,
-            description,
-            link,
-            mediaType,
-            media: e.target.result
-          };
-
-          const { ref, push, set } = window.firebaseTools;
-          const db = window.firebaseDB;
-          const newProductRef = push(ref(db, 'products'));
-          set(newProductRef, newProduct);
-
-          document.getElementById('productTitle').value = '';
-          document.getElementById('productDescription').value = '';
-          document.getElementById('productLink').value = '';
-          document.getElementById('productMedia').value = '';
-          alert('Product added!');
-        };
-        reader.readAsDataURL(mediaFile);
-      };
-
-      function loadProducts() {
-        const db = window.firebaseDB;
-        const { ref, onValue } = window.firebaseTools;
-        const productsRef = ref(db, 'products');
-        onValue(productsRef, (snapshot) => {
-          const products = snapshot.val() || {};
-          productGrid.innerHTML = '';
-          Object.keys(products).forEach(id => {
-            const p = products[id];
-            const card = document.createElement('div');
-            card.className = 'product-card';
-            let mediaHTML = p.mediaType === 'video' ?
-              `<video controls><source src="${p.media}" type="video/mp4">Your browser does not support video.</video>` :
-              `<img src="${p.media}" alt="${p.title}" />`;
-            card.innerHTML = `
-              ${mediaHTML}
-              <h3>${p.title}</h3>
-              <p>${p.description}</p>
-              <a href="${p.link}" target="_blank" class="btn">View Product</a>
-            `;
-            productGrid.appendChild(card);
-          });
-        });
-      }
-
-      setTimeout(() => {
-        if (window.firebaseDB) {
-          loadProducts();
-        } else {
-          console.error('Firebase not ready yet.');
-        }
-      }, 1000);
-    });
-  </script>
 </body>
 </html>
