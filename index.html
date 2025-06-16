@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Itemora</title>
 
-  <!-- Firebase App and Database (Modular SDK) -->
+  <!-- Firebase -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js';
+    import { getDatabase, ref, onValue, set, push } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js';
 
     const firebaseConfig = {
       apiKey: "AIzaSyDBVFtft9JAqNj_8dUwNBOLV__mVxhvRbo",
@@ -23,25 +23,65 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-
-    window.firebaseTools = { ref, push, set, onValue };
+    window.firebaseApp = app;
     window.firebaseDB = db;
+    window.firebaseTools = { ref, onValue, set, push };
   </script>
 
   <style>
-    body { font-family: Arial; background: #f9f9f9; }
-    .container { max-width: 800px; margin: 0 auto; padding: 20px; }
-    .btn { background: #007bff; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer; }
-    input, textarea, select { width: 100%; padding: 10px; margin: 10px 0; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #f9f9f9; color: #333; }
+    header { background: #fff; padding: 20px; border-bottom: 1px solid #ddd; position: sticky; top: 0; z-index: 10; }
+    .container { width: 90%; max-width: 1100px; margin: 0 auto; }
+    nav ul { display: flex; list-style: none; gap: 20px; }
+    nav a { text-decoration: none; color: #333; }
+    .hero { text-align: center; padding: 60px 20px; background: #eef6ff; }
+    .hero h1 { font-size: 2.5em; margin-bottom: 10px; }
+    .btn { background: #007BFF; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 20px; cursor: pointer; border: none; }
+    .featured { padding: 40px 0; }
     .product-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
-    .product-card { background: #fff; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-    .product-card img, .product-card video { width: 100%; border-radius: 5px; }
+    .product-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; }
+    .product-card img, .product-card video { width: 100%; height: auto; border-radius: 5px; }
+    .upload-area, .login-area { background: #fff; padding: 20px; margin-top: 40px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    footer { text-align: center; padding: 20px; background: #fff; margin-top: 40px; border-top: 1px solid #eee; font-size: 0.9em; }
+    .hidden { display: none; }
+    input, textarea, select { width: 100%; padding: 10px; margin-top: 10px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 5px; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Itemora Admin</h1>
-    <h3>Add New Product</h3>
+  <header>
+    <div class="container">
+      <h2>Itemora</h2>
+      <nav>
+        <ul>
+          <li><a href="#featured">Products</a></li>
+          <li><a href="#upload">Admin</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="container">
+      <h1>Discover Trusted Picks with Itemora</h1>
+      <p>Curated products handpicked just for you.</p>
+      <a href="#featured" class="btn">Explore Products</a>
+    </div>
+  </section>
+
+  <section class="featured container" id="featured">
+    <h2>Featured Products</h2>
+    <div class="product-grid" id="productGrid"></div>
+  </section>
+
+  <section class="login-area container" id="login">
+    <h2>Admin Login</h2>
+    <input type="password" id="adminPassword" placeholder="Enter admin password" />
+    <button class="btn" onclick="loginAdmin()">Login</button>
+  </section>
+
+  <section class="upload-area container hidden" id="upload">
+    <h2>Add New Product</h2>
     <input type="text" id="productTitle" placeholder="Product Title" />
     <textarea id="productDescription" placeholder="Product Description"></textarea>
     <input type="url" id="productLink" placeholder="Affiliate Product Link (https://...)" />
@@ -51,84 +91,97 @@
     </select>
     <input type="file" id="productMedia" accept="image/*,video/*" />
     <button class="btn" onclick="addProduct()">Add Product</button>
+  </section>
 
-    <h2 style="margin-top:40px;">All Products</h2>
-    <div class="product-grid" id="productGrid"></div>
-  </div>
+  <footer>
+    <p>&copy; 2025 Itemora • All rights reserved</p>
+  </footer>
 
   <script>
-    function addProduct() {
-      const title = document.getElementById('productTitle').value;
-      const description = document.getElementById('productDescription').value;
-      const link = document.getElementById('productLink').value;
-      const mediaType = document.getElementById('mediaType').value;
-      const mediaFile = document.getElementById('productMedia').files[0];
+    document.addEventListener('DOMContentLoaded', () => {
+      const ADMIN_PASSWORD = 'itemora2025';
 
-      if (!title || !description || !link || !mediaFile) {
-        alert('Please fill all fields.');
-        return;
-      }
+      const productGrid = document.getElementById('productGrid');
+      const uploadSection = document.getElementById('upload');
+      const loginSection = document.getElementById('login');
 
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        const newProduct = {
-          title,
-          description,
-          link,
-          mediaType,
-          media: e.target.result
-        };
+      window.loginAdmin = function () {
+        const input = document.getElementById('adminPassword').value;
+        if (input === ADMIN_PASSWORD) {
+          loginSection.classList.add('hidden');
+          uploadSection.classList.remove('hidden');
+        } else {
+          alert('Incorrect password.');
+        }
+      };
 
-        const { ref, push, set } = window.firebaseTools;
-        const db = window.firebaseDB;
-        const newRef = push(ref(db, 'products'));
-        set(newRef, newProduct).then(() => {
-          alert('✅ Product added!');
+      window.addProduct = function () {
+        const title = document.getElementById('productTitle').value;
+        const description = document.getElementById('productDescription').value;
+        const link = document.getElementById('productLink').value;
+        const mediaType = document.getElementById('mediaType').value;
+        const mediaFile = document.getElementById('productMedia').files[0];
+
+        if (!title || !description || !link || !mediaFile) {
+          return alert('Please fill all fields.');
+        }
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const newProduct = {
+            title,
+            description,
+            link,
+            mediaType,
+            media: e.target.result
+          };
+
+          const { ref, push, set } = window.firebaseTools;
+          const db = window.firebaseDB;
+          const newProductRef = push(ref(db, 'products'));
+          set(newProductRef, newProduct);
+
           document.getElementById('productTitle').value = '';
           document.getElementById('productDescription').value = '';
           document.getElementById('productLink').value = '';
           document.getElementById('productMedia').value = '';
-        });
+          alert('Product added!');
+        };
+        reader.readAsDataURL(mediaFile);
       };
 
-      reader.readAsDataURL(mediaFile);
-    }
-
-    function loadProducts() {
-      const { ref, onValue } = window.firebaseTools;
-      const db = window.firebaseDB;
-      const productGrid = document.getElementById('productGrid');
-      const productsRef = ref(db, 'products');
-
-      onValue(productsRef, (snapshot) => {
-        const data = snapshot.val() || {};
-        productGrid.innerHTML = '';
-        Object.values(data).forEach(p => {
-          const card = document.createElement('div');
-          card.className = 'product-card';
-          const media = p.mediaType === 'video'
-            ? `<video controls><source src="${p.media}" type="video/mp4" /></video>`
-            : `<img src="${p.media}" alt="${p.title}" />`;
-          card.innerHTML = `
-            ${media}
-            <h3>${p.title}</h3>
-            <p>${p.description}</p>
-            <a href="${p.link}" target="_blank" class="btn">View Product</a>
-          `;
-          productGrid.appendChild(card);
+      function loadProducts() {
+        const db = window.firebaseDB;
+        const { ref, onValue } = window.firebaseTools;
+        const productsRef = ref(db, 'products');
+        onValue(productsRef, (snapshot) => {
+          const products = snapshot.val() || {};
+          productGrid.innerHTML = '';
+          Object.keys(products).forEach(id => {
+            const p = products[id];
+            const card = document.createElement('div');
+            card.className = 'product-card';
+            let mediaHTML = p.mediaType === 'video' ?
+              `<video controls><source src="${p.media}" type="video/mp4">Your browser does not support video.</video>` :
+              `<img src="${p.media}" alt="${p.title}" />`;
+            card.innerHTML = `
+              ${mediaHTML}
+              <h3>${p.title}</h3>
+              <p>${p.description}</p>
+              <a href="${p.link}" target="_blank" class="btn">View Product</a>
+            `;
+            productGrid.appendChild(card);
+          });
         });
-      });
-    }
+      }
 
-    // Wait for Firebase to load before running
-    window.addEventListener('load', () => {
       setTimeout(() => {
         if (window.firebaseDB) {
           loadProducts();
         } else {
-          console.error("Firebase not initialized.");
+          console.error('Firebase not ready yet.');
         }
-      }, 500);
+      }, 1000);
     });
   </script>
 </body>
