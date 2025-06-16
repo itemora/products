@@ -4,10 +4,110 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Itemora</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f4f6f8;
+      color: #333;
+      line-height: 1.6;
+    }
+    header {
+      background: #fff;
+      padding: 20px;
+      border-bottom: 1px solid #ddd;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    .container {
+      width: 90%;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    nav ul {
+      display: flex;
+      list-style: none;
+      gap: 20px;
+    }
+    nav a {
+      text-decoration: none;
+      color: #007BFF;
+      font-weight: 600;
+    }
+    .hero {
+      text-align: center;
+      padding: 60px 20px;
+      background: #eaf3ff;
+    }
+    .hero h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+    .hero p {
+      font-size: 1.1em;
+      color: #555;
+    }
+    .btn {
+      background: #007BFF;
+      color: white;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 5px;
+      display: inline-block;
+      margin-top: 20px;
+      cursor: pointer;
+      border: none;
+      font-weight: 600;
+    }
+    .featured {
+      padding: 40px 0;
+    }
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+    .product-card {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .product-card img, .product-card video {
+      width: 100%;
+      height: auto;
+      border-radius: 5px;
+    }
+    footer {
+      text-align: center;
+      padding: 20px;
+      background: #fff;
+      margin-top: 40px;
+      border-top: 1px solid #eee;
+      font-size: 0.9em;
+      color: #777;
+    }
+    #adminLogin {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      background-color: #333;
+      color: #fff;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      z-index: 999;
+    }
+  </style>
+
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js';
-    import { getDatabase, ref, onValue, set, push } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js';
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDBVFtft9JAqNj_8dUwNBOLV__mVxhvRbo",
@@ -22,309 +122,68 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-    window.firebaseApp = app;
-    window.firebaseDB = db;
-    window.firebaseTools = { ref, onValue, set, push };
-  </script>
-  <style>
-    :root {
-      --primary: #16a34a;
-      --bg: #f0fdf4;
-      --text: #1f2937;
-      --card-bg: #ffffff;
-    }
 
-    * {
-      margin: 0; padding: 0; box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Inter', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-    }
-
-    header {
-      background: white;
-      padding: 20px 40px;
-      border-bottom: 1px solid #e0e0e0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-
-    header h2 {
-      font-weight: 700;
-      font-size: 1.5rem;
-      color: var(--primary);
-    }
-
-    nav ul {
-      display: flex;
-      gap: 20px;
-      list-style: none;
-    }
-
-    nav a {
-      text-decoration: none;
-      color: var(--text);
-      font-weight: 500;
-    }
-
-    .hero {
-      padding: 60px 20px;
-      text-align: center;
-      background: linear-gradient(to right, #16a34a, #0e7490);
-      color: white;
-    }
-
-    .hero h1 {
-      font-size: 2.8rem;
-      margin-bottom: 15px;
-      font-weight: 700;
-    }
-
-    .hero p {
-      font-size: 1.1rem;
-    }
-
-    .btn {
-      background: white;
-      color: var(--primary);
-      padding: 10px 20px;
-      border: none;
-      border-radius: 30px;
-      font-weight: 600;
-      margin-top: 25px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-
-    .btn:hover {
-      background: #d1fae5;
-    }
-
-    .container {
-      width: 90%;
-      max-width: 1100px;
-      margin: auto;
-      padding: 40px 0;
-    }
-
-    h2.section-title {
-      font-size: 2rem;
-      font-weight: 700;
-      margin-bottom: 30px;
-      text-align: center;
-      color: #333;
-    }
-
-    .product-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
-      gap: 30px;
-    }
-
-    .product-card {
-      background: var(--card-bg);
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-      padding: 20px;
-      text-align: center;
-      transition: transform 0.2s;
-    }
-
-    .product-card:hover {
-      transform: translateY(-5px);
-    }
-
-    .product-card img, .product-card video {
-      max-width: 100%;
-      border-radius: 8px;
-      margin-bottom: 15px;
-    }
-
-    .product-card h3 {
-      font-size: 1.2rem;
-      font-weight: 600;
-    }
-
-    .product-card p {
-      font-size: 0.95rem;
-      color: #555;
-      margin: 10px 0;
-    }
-
-    .product-card a {
-      display: inline-block;
-      margin-top: 10px;
-      text-decoration: none;
-      color: white;
-      background: var(--primary);
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-size: 0.9rem;
-    }
-
-    .upload-area {
-      display: none;
-      background: white;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-      margin-bottom: 40px;
-    }
-
-    .upload-area input,
-    .upload-area textarea,
-    .upload-area select {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 15px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 1rem;
-    }
-
-    footer {
-      text-align: center;
-      padding: 30px 0;
-      background: #f1f1f1;
-      font-size: 0.9rem;
-      color: #555;
-    }
-
-    @media(max-width: 600px) {
-      header {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-    }
-  </style>
-</head>
-<body>
-  <header>
-    <h2>Itemora</h2>
-    <nav>
-      <ul>
-        <li><a href="#featured">Products</a></li>
-      </ul>
-    </nav>
-  </header>
-
-  <section class="hero">
-    <h1>Discover Trusted Picks</h1>
-    <p>Curated products handpicked just for you.</p>
-    <a href="#featured" class="btn">Explore Products</a>
-  </section>
-
-  <section id="featured" class="container">
-    <h2 class="section-title">Featured Products</h2>
-    <div class="product-grid" id="productGrid"></div>
-  </section>
-
-  <section class="upload-area container" id="upload">
-    <h2>Add New Product</h2>
-    <input type="text" id="productTitle" placeholder="Product Title" />
-    <textarea id="productDescription" placeholder="Product Description"></textarea>
-    <input type="url" id="productLink" placeholder="Affiliate Product Link (https://...)" />
-    <select id="mediaType">
-      <option value="image">Image</option>
-      <option value="video">Video</option>
-    </select>
-    <input type="file" id="productMedia" accept="image/*,video/*" />
-    <button class="btn" onclick="addProduct()">Add Product</button>
-  </section>
-
-  <footer>
-    <p>&copy; 2025 Itemora • All rights reserved</p>
-  </footer>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const ADMIN_PASSWORD = 'itemora2025';
-      const productGrid = document.getElementById('productGrid');
-      const uploadSection = document.getElementById('upload');
-
-      window.addProduct = function () {
-        const title = document.getElementById('productTitle').value;
-        const description = document.getElementById('productDescription').value;
-        const link = document.getElementById('productLink').value;
-        const mediaType = document.getElementById('mediaType').value;
-        const mediaFile = document.getElementById('productMedia').files[0];
-
-        if (!title || !description || !link || !mediaFile) {
-          return alert('Please fill all fields.');
-        }
-
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          const newProduct = {
-            title,
-            description,
-            link,
-            mediaType,
-            media: e.target.result
-          };
-
-          const { ref, push, set } = window.firebaseTools;
-          const db = window.firebaseDB;
-          const newProductRef = push(ref(db, 'products'));
-          set(newProductRef, newProduct);
-
-          document.getElementById('productTitle').value = '';
-          document.getElementById('productDescription').value = '';
-          document.getElementById('productLink').value = '';
-          document.getElementById('productMedia').value = '';
-          alert('Product added!');
-        };
-        reader.readAsDataURL(mediaFile);
-      }
+    window.addEventListener('DOMContentLoaded', () => {
+      const productGrid = document.getElementById("productGrid");
 
       function loadProducts() {
-        const db = window.firebaseDB;
-        const { ref, onValue } = window.firebaseTools;
-        const productsRef = ref(db, 'products');
+        const productsRef = ref(db, "products");
         onValue(productsRef, (snapshot) => {
           const products = snapshot.val() || {};
-          productGrid.innerHTML = '';
-          Object.keys(products).forEach(id => {
+          productGrid.innerHTML = "";
+          Object.keys(products).forEach((id) => {
             const p = products[id];
-            const card = document.createElement('div');
-            card.className = 'product-card';
-            let mediaHTML = p.mediaType === 'video'
-              ? `<video controls><source src="${p.media}" type="video/mp4"></video>`
-              : `<img src="${p.media}" alt="${p.title}" />`;
+            const card = document.createElement("div");
+            card.className = "product-card";
+            const mediaHTML =
+              p.mediaType === "video"
+                ? `<video controls><source src="${p.media}" type="video/mp4"></video>`
+                : `<img src="${p.media}" alt="${p.title}"/>`;
             card.innerHTML = `
               ${mediaHTML}
               <h3>${p.title}</h3>
               <p>${p.description}</p>
-              <a href="${p.link}" target="_blank">View Product</a>
+              <a href="${p.link}" target="_blank" class="btn">View Product</a>
             `;
             productGrid.appendChild(card);
           });
         });
       }
 
-      setTimeout(() => {
-        if (window.firebaseDB) loadProducts();
-      }, 1000);
-
-      document.addEventListener('keydown', (e) => {
-        if (e.shiftKey && e.key.toLowerCase() === 'i') {
-          const pass = prompt("Enter admin password:");
-          if (pass === ADMIN_PASSWORD) {
-            uploadSection.style.display = 'block';
-            uploadSection.scrollIntoView({ behavior: 'smooth' });
-          } else {
-            alert("Incorrect password.");
-          }
-        }
-      });
+      loadProducts();
     });
   </script>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h2>Itemora</h2>
+      <nav>
+        <ul>
+          <li><a href="#featured">Products</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="container">
+      <h1>Discover Trusted Picks with Itemora</h1>
+      <p>Explore our best digital picks just for you.</p>
+      <a href="#featured" class="btn">Explore Products</a>
+    </div>
+  </section>
+
+  <section class="featured container" id="featured">
+    <h2>Featured Products</h2>
+    <div class="product-grid" id="productGrid"></div>
+  </section>
+
+  <footer>
+    <p>&copy; 2025 Itemora • All rights reserved</p>
+  </footer>
+
+  <!-- Admin login button only -->
+  <button id="adminLogin" onclick="alert('Redirect to admin login page coming soon...')">Admin Login</button>
 </body>
 </html>
